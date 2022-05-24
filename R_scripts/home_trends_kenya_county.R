@@ -1,6 +1,6 @@
 # What type of homes do Kenyans live in? Tenure, Mode of Acquisition, and House Type.
 # By @willyokech
-# Data: rKenyaCensus
+# Data: rKenyaCensus 
 # Map generation: https://shelkariuki.netlify.app/post/firstmap/
 
 #1) Load the required

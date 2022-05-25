@@ -16,24 +16,18 @@ data("DataCatalogue")
 
 # 3) Load the required data
 
-df_1 <- V4_T2.10
+df_1 <- V4_T2.11a
 View(df_1)
 
 # 4) Preliminary filtering and cleanup
 
-# Table 1 for National Analysis
-table_1 <- df_1[1:3,]
-
-# Tables for County and Subcounty Analysis
+# Tables for County Analysis
 
 # Table 2 - County
 table_2 <- df_1[4:395,]
 table_2_c <- df_1[4:395,] %>%
   filter(AdminArea == "County")
 
-# Table 3 - Subcounty
-table_2_sc <- df_1[4:395,] %>%
-  filter(AdminArea != "County")
 
 # 5) Load the packages required for the maps
 
@@ -159,61 +153,60 @@ colnames(merged_df)
 glimpse(merged_df)
 
 
+
 # 9) Visualize the data
+
+# Home ownership and construction
 
 #install.packages("ggbreak")
 library(ggbreak)
 
 library(patchwork)
 
-barplot <- table_2_c %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc, fill = CH_Owned_Perc)) + 
+barplot_construct <- table_2_c %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc, fill = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5) + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   scale_fill_gradient(low = "darkred", high = "yellow") + 
   theme_classic()+
   labs(x = "County", 
-       y = "Percentage (%) of households owning a home", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        subtitle = "",
        caption = "",
        fill = "Percentage (%)\nof households")+
-  theme(axis.title.x =element_text(size = 20),
-        axis.title.y =element_text(size = 20),
+  theme(axis.title.x =element_text(size = 15),
+        axis.title.y =element_text(size = 15),
         plot.title = element_text(family = "URW Palladio L, Italic",size = 16, hjust = 0.5),
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("Helvetica",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12),
         panel.background = element_rect(fill = "white", colour = "white")) + 
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 20 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 20 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 20 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 20 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 20 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 20 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
 
-barplot 
+barplot_construct
 
 # Save the plot
-ggsave("images/county/all_counties_home_barplot.png", width = 7.5, height = 10)
+ggsave("images/acqui_county_construct/all_counties_barplot_construct.png", width = 8, height = 8)
 
-# Plot a base plot / map.
-
-plot(KenyaSHP$geometry, lty = 5, col = "green")
-
-
-#  ggplot2()
+#  ggplot2() and map
 
 # Legend in map is silenced because the bar graph has one
 
-map <- ggplot(data = merged_df)+
-  geom_sf(aes(geometry = geometry, fill = CH_Owned_Perc))+
+map_construct <- ggplot(data = merged_df)+
+  geom_sf(aes(geometry = geometry, fill = Constructed_Perc))+
   theme_void()+
   labs(title = "",
        caption = "By @willyokech",
@@ -224,14 +217,14 @@ map <- ggplot(data = merged_df)+
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12))+
   scale_fill_gradient(low = "darkred", high = "yellow")
 
-map
+map_construct
 
 # Save the plot
-ggsave("images/county/all_counties_home_map.png", width = 7.5, height = 10)
+ggsave("images/acqui_county_construct/all_counties_map_construct.png", width = 6, height = 8)
 
-barplot + map
+barplot_construct + map_construct
 
-ggsave("images/county/all_counties_home_barplot_map.png", width = 10, height = 10)
+ggsave("images/acqui_county_construct/all_counties_map_barplot_construct.png", width = 12, height = 8)
 
 
 # Visualizing home ownership within the different economic blocs
@@ -248,33 +241,35 @@ major <- c("Nairobi", "Mombasa", "Kisumu", "Nakuru", "Uasin Gishu")
 
 # Create new dataframes for the different economic blocs
 
-fcdc_home <- table_2_c %>%
+fcdc_construct <- table_2_c %>%
   filter(COUNTY %in% fcdc) 
-noreb_home <- table_2_c %>%
+noreb_construct <- table_2_c %>%
   filter(COUNTY %in% noreb)
-lreb_home <- table_2_c %>%
+lreb_construct <- table_2_c %>%
   filter(COUNTY %in% lreb)
-pwani_home <- table_2_c %>%
+pwani_construct <- table_2_c %>%
   filter(COUNTY %in% pwani)
-sekeb_home <- table_2_c %>%
+sekeb_construct <- table_2_c %>%
   filter(COUNTY %in% sekeb)
-mkareb_home <- table_2_c %>%
+mkareb_construct <- table_2_c %>%
   filter(COUNTY %in% mkareb)
-nakeb_home <- table_2_c %>%
+nakeb_construct <- table_2_c %>%
   filter(COUNTY %in% nakeb)
-namet_home <- table_2_c %>%
+namet_construct <- table_2_c %>%
   filter(COUNTY %in% namet)
-major_home <- table_2_c %>%
+major_construct <- table_2_c %>%
   filter(COUNTY %in% major)
 
+# Construction by regional bloc
 
-fcdc_home_plot <- fcdc_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+fcdc_construct_plot <- fcdc_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "azure3") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -283,31 +278,33 @@ fcdc_home_plot <- fcdc_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) + 
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 5 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 5 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 5 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 5 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
-
-fcdc_home_plot
-
-ggsave("images/county/fcdc_home_plot.png", width = 6, height = 4)
+            angle=90, vjust = -1)
 
 
-noreb_home_plot <- noreb_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+fcdc_construct_plot
+
+ggsave("images/acqui_county_construct/fcdc_construct_barplot.png", width = 6, height = 4)
+
+
+noreb_construct_plot <- noreb_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "chocolate4") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -316,31 +313,32 @@ noreb_home_plot <- noreb_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) + 
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 5 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 5 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 5 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 5 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
 
-noreb_home_plot
+noreb_construct_plot
 
-ggsave("images/county/noreb_home_plot.png", width = 6, height = 4)
+ggsave("images/acqui_county_construct/noreb_construct_barplot.png", width = 6, height = 4)
 
 
-lreb_home_plot <- lreb_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+lreb_construct_plot <- lreb_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "darkgoldenrod1") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -349,31 +347,32 @@ lreb_home_plot <- lreb_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 7.5 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 5 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 7.5 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 7.5 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
 
-lreb_home_plot
+lreb_construct_plot
 
-ggsave("images/county/lreb_home_plot.png", width = 6, height = 4)
+ggsave("images/acqui_county_construct/lreb_construct_barplot.png", width = 6, height = 4)
 
 
-pwani_home_plot <- pwani_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+pwani_construct_plot <- pwani_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "deeppink") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -382,32 +381,31 @@ pwani_home_plot <- pwani_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +
-
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 3 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 3 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 3 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 3 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 3 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 3 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
 
-pwani_home_plot
+pwani_construct_plot
 
-ggsave("images/county/pwani_home_plot.png", width = 6, height = 4)
+ggsave("images/acqui_county_construct/pwani_construct_barplot.png", width = 6, height = 4)
 
-
-sekeb_home_plot <- sekeb_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+sekeb_construct_plot <- sekeb_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "darkseagreen") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -416,31 +414,32 @@ sekeb_home_plot <- sekeb_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +  
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 2 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 2 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 2 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 2 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 2 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 2 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
 
-sekeb_home_plot
+sekeb_construct_plot
 
-ggsave("images/county/sekeb_home_plot.png", width = 6, height = 4)
+ggsave("images/acqui_county_construct/sekeb_construct_barplot.png", width = 6, height = 4)
 
 
-mkareb_home_plot <- mkareb_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+mkareb_construct_plot <- mkareb_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "darkslategrey") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -449,32 +448,32 @@ mkareb_home_plot <- mkareb_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 5 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 5 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 5 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1, color = "orange") +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 5 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1, color = "orange") +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 5 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1, color = "orange")
+
+mkareb_construct_plot
+
+ggsave("images/acqui_county_construct/mkareb_construct_barplot.png", width = 6, height = 4)
 
 
-mkareb_home_plot
-
-ggsave("images/county/mkareb_home_plot.png", width = 6, height = 4)
-
-
-nakeb_home_plot <- nakeb_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+nakeb_construct_plot <- nakeb_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "aquamarine2") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -483,32 +482,32 @@ nakeb_home_plot <- nakeb_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 1.5 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 1.5 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 1.5 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 1.5 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 1.5 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 1.5 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
+
+nakeb_construct_plot
+
+ggsave("images/acqui_county_construct/nakeb_construct_barplot.png", width = 6, height = 4)
 
 
-nakeb_home_plot
-
-ggsave("images/county/nakeb_home_plot.png", width = 6, height = 4)
-
-
-namet_home_plot <- namet_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+namet_construct_plot <- namet_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "coral2") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -517,32 +516,32 @@ namet_home_plot <- namet_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 3 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 3 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 3 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 3 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 3 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 3 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
+
+namet_construct_plot
+
+ggsave("images/acqui_county_construct/namet_construct_barplot.png", width = 6, height = 4)
 
 
-namet_home_plot
-
-ggsave("images/county/namet_home_plot.png", width = 6, height = 4)
-
-
-major_home_plot <- major_home %>%
-  ggplot(aes(x = reorder(COUNTY, CH_Owned_Perc), y = CH_Owned_Perc)) + 
+major_construct_plot <- major_construct %>%
+  ggplot(aes(x = reorder(COUNTY, Constructed_Perc), y = Constructed_Perc)) + 
   geom_bar(stat = "identity", width = 0.5, fill = "darkviolet") + 
   coord_flip() + 
+  scale_y_break(c(5, 40)) +
   theme_classic()+
   labs(x = "County", 
-       y = "", 
+       y = "Percentage (%) of households that constructed their home", 
        title = "",
        caption = "") +
   theme(axis.title.x =element_text(size = 15),
@@ -551,20 +550,22 @@ major_home_plot <- major_home %>%
         plot.subtitle = element_text(family = "URW Palladio L, Italic",size = 10, hjust = 0.5),
         legend.title = element_text("URW Palladio L, Italic",size = 8, vjust = 1),
         plot.caption = element_text(family = "URW Palladio L, Italic",size = 12)) +
-  geom_hline(yintercept = 61.3, color = "black") +
-  geom_text(aes(x = 3 , y = 61.3, label = "Average Home Ownership (Kenya)"), 
+  geom_hline(yintercept = 93.9, color = "black") +
+  geom_text(aes(x = 3 , y = 93.9, label = "Average Construction (Kenya)"), 
             size = 3, 
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 86.6, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 3 , y = 86.6, label = "Average Home Ownership (Rural)"), 
+            angle=90, vjust = -1) +
+  geom_hline(yintercept = 96, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 3 , y = 96, label = "Average Construction (Rural)"), 
             size = 3,
-            angle=90, vjust = 1.5) +
-  geom_hline(yintercept = 21.3, linetype = "dashed", color = "black") +
-  geom_text(aes(x = 3 , y = 21.3, label = "Average Home Ownership (Urban)"), 
+            angle=90, vjust = 1) +
+  geom_hline(yintercept = 80.6, linetype = "dashed", color = "black") +
+  geom_text(aes(x = 3 , y = 80.6, label = "Average Construction (Urban)"), 
             size = 3,
-            angle=90, vjust = 1.5)
+            angle=90, vjust = -1)
 
-  
-major_home_plot
+major_construct_plot
 
-ggsave("images/county/major_home_plot.png", width = 6, height = 4)
+ggsave("images/acqui_county_construct/major_construct_barplot.png", width = 6, height = 4)
+
+
+

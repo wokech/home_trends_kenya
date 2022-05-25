@@ -2,6 +2,8 @@
 # By @willyokech
 # Data: rKenyaCensus
 
+#1) Load the required packages
+
 #install.packages("devtools")
 #devtools::install_github("Shelmith-Kariuki/rKenyaCensus")
 library(rKenyaCensus) # Contains the 2019 Kenya Census data

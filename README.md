@@ -2,7 +2,7 @@
 
 ## Home ownership and mode of acquisition
 
-### References
+### References/Data Sources
 1) 2019 Kenya Population and Housing Census
 2) Shelmith Kariuki (2020). rKenyaCensus: 2019 Kenya Population and Housing Census Results. R package version 0.0.2.
 

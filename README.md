@@ -1,6 +1,6 @@
 # How do Kenyan households acquire their homes? 
 
-## Home ownership, mode of acquisition, and popular building materials for the floor, wall, and roof
+## Home ownership and mode of acquisition
 
 ### References
 1) 2019 Kenya Population and Housing Census
